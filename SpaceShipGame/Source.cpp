@@ -56,7 +56,7 @@ void DrawShip() {
 	DrawRotaGraph(320, 320, 0.5, Angle, SpaceShipPicture, TRUE);
 }
 void DrawShipMiniMap() {
-	DrawRotaGraph(320, 320, 0.1, Angle, SpaceShipPicture, TRUE);
+	DrawRotaGraph(320, 320, 0.3, Angle, SpaceShipPicture, TRUE);
 }
 void DrawBack() {
 	DrawGraph(BackX, BackY, SpacePicture, TRUE);
