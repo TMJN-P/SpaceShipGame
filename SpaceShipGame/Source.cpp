@@ -1,21 +1,24 @@
 #include<DxLib.h>
 #include<bits/stdc++.h>
 
-const int FieldX = 50000, FieldY = 50000;
-const double TurnMove = 0.1, Acceleration = 0.1, Gravity = 0.02;
+const int FieldX = 4000, FieldY = 4000;
+const double TurnMove = 0.1, Acceleration = 0.12, Gravity = 0.5;
 char Buf[256];
 double VectorX, VectorY, Angle, BackX, BackY;
-int SpaceShipPicture, SpacePicture;
+int SpaceShipPicture, SpacePicture, MiniMap;
 
 class Star {
 public:
 	double X, Y;
 	int Radius, ColorRed, ColorGreen, ColorBlue;
 	double Dist() {
-		return sqrt(X * X + Y * Y);
+		return sqrt((X - 320) * (X - 320) + (Y - 320) * (Y - 320));
 	}
 	void Draw() {
 		DrawCircleAA(X, Y, Radius, 60, GetColor(ColorRed, ColorGreen, ColorBlue), TRUE);
+	}
+	void DrawMiniMap() {
+		DrawCircleAA((X-320) / 10+320, (Y-320) / 10+320, Radius / 10, 60, GetColor(ColorRed, ColorGreen, ColorBlue), TRUE);
 	}
 	void Move() {
 		X += VectorX;
@@ -31,10 +34,8 @@ public:
 	}
 	void ShipMove() {
 		double Distance = Dist();
-		if (Distance < 5000) {
-			VectorX -= Gravity * (X - 300) / Distance;
-			VectorY -= Gravity * (Y - 300) / Distance;
-		}
+		VectorX -= Gravity * (X - 320)*pow(1.005, -max(Distance,300.0)) / Distance;
+		VectorY -= Gravity * (Y - 320)*pow(1.005, -max(Distance,300.0)) / Distance;
 	}
 };
 
@@ -48,11 +49,14 @@ void Accelerate() {
 	VectorX += Acceleration * cos(Angle);
 	VectorY += Acceleration * sin(Angle);
 	for (int i = 0; i != 20; ++i) {
-		DrawLineAA(300 + cos(Angle - DX_PI / 8)*(35 + i), 300 + sin(Angle - DX_PI / 8)*(35 + i), 300 + cos(Angle + DX_PI / 8)*(35 + i), 300 + sin(Angle + DX_PI / 8)*(35 + i), GetColor(255 - 10 * i, 60 - i * 2, 0));
+		DrawLineAA(320 + cos(Angle - DX_PI / 16)*(17 + i), 320 + sin(Angle - DX_PI / 16)*(17 + i), 320 + cos(Angle + DX_PI / 16)*(17 + i), 320 + sin(Angle + DX_PI / 16)*(17 + i), GetColor(255 - 10 * i, 60 - i * 2, 0));
 	}
 }
 void DrawShip() {
-	DrawRotaGraph(300, 300, 1.0, Angle, SpaceShipPicture, TRUE);
+	DrawRotaGraph(320, 320, 0.5, Angle, SpaceShipPicture, TRUE);
+}
+void DrawShipMiniMap() {
+	DrawRotaGraph(320, 320, 0.1, Angle, SpaceShipPicture, TRUE);
 }
 void DrawBack() {
 	DrawGraph(BackX, BackY, SpacePicture, TRUE);
@@ -62,8 +66,8 @@ void DrawBack() {
 }
 
 void BackMove() {
-	BackX += VectorX;
-	BackY += VectorY;
+	BackX += VectorX/2;
+	BackY += VectorY/2;
 	if (BackX >= 0)
 		BackX -= 720;
 	if (BackY >= 0)
@@ -77,30 +81,40 @@ void BackMove() {
 Star StarData[20];
 
 
+void DrawMap() {
+	DrawBoxAA(0, 0, 720, 720, GetColor(0, 0, 0), TRUE);
+	for (int i = 0; i != 20; ++i) {
+		StarData[i].DrawMiniMap();
+	}
+	DrawShipMiniMap();
+}
+
+
+
 void Init() {
 	SpacePicture = LoadGraph("‰F’ˆ.png");
 	SpaceShipPicture = LoadGraph("’…—¤‘D.png");
 	Angle = DX_PI / 2;
-	StarData[0] = { -2000,-12000,200,180,255,40 };
-	StarData[1] = { -14000,-35000,300,0,190,120 };
-	StarData[2] = { -20000,-28000,400,255,20,10 };
-	StarData[3] = { -30000,-42000,250,10,255,100 };
-	StarData[4] = { -35000,-2000,100,100,255,10 };
-	StarData[5] = { 4000,-30000,100,255,140,0 };
-	StarData[6] = { 37000,-25000,250,100,10,250 };
-	StarData[7] = { 25000,-18000,500,10,140,255 };
-	StarData[8] = { 12000,-5000,450,0,140,100 };
-	StarData[9] = { 42000,-42000,100,200,140,0 };
-	StarData[10] = { -10000,5000,100,200,10,200 };
-	StarData[11] = { -2500,40000,200,50,140,100 };
-	StarData[12] = { -28000,23000,250,180,80,40 };
-	StarData[13] = { -33000,32000,350,50,150,100 };
-	StarData[14] = { -44000,17000,450,180,30,150 };
-	StarData[15] = { 2000,2000,200,200,100,100 };
-	StarData[16] = { 13000,25000,50,100,200,100 };
-	StarData[17] = { 26000,13000,250,100,100,200 };
-	StarData[18] = { 42000,48000,300,100,100,250 };
-	StarData[19] = { 32000,36000,400,255,255,255 };
+	StarData[0] = { -150,-900,100,180,255,40 };
+	StarData[1] = { -1000,-2100,150,0,190,120 };
+	StarData[2] = { -1500,-2100,200,255,20,10 };
+	StarData[3] = { -2100,-3000,150,10,255,100 };
+	StarData[4] = { -2000,-150,50,100,255,10 };
+	StarData[5] = { 300,-2200,50,255,140,0 };
+	StarData[6] = { 2700,-2300,150,100,10,250 };
+	StarData[7] = { 1800,-1250,250,10,140,255 };
+	StarData[8] = { 900,-300,250,0,140,100 };
+	StarData[9] = { 3300,-3300,50,200,140,0 };
+	StarData[10] = { -750,450,50,200,10,200 };
+	StarData[11] = { -210,3000,100,50,140,100 };
+	StarData[12] = { -2100,1500,100,180,80,40 };
+	StarData[13] = { -2200,2400,150,50,150,100 };
+	StarData[14] = { -3300,1200,250,180,30,150 };
+	StarData[15] = { 450,2500,100,200,100,100 };
+	StarData[16] = { 900,1500,25,100,200,100 };
+	StarData[17] = { 2000,900,150,100,100,200 };
+	StarData[18] = { 3000,3600,150,100,100,250 };
+	StarData[19] = { 2400,2700,200,255,255,255 };
 }
 
 
@@ -138,7 +152,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			StarData[i].Draw();
 			StarData[i].ShipMove();
 		}
-
+		if (Buf[KEY_INPUT_M]) {
+			DrawMap();
+		}
 		DrawFormatString(0, 0, GetColor(255, 255, 255), "%f %f", VectorX, VectorY);
 		ScreenFlip();
 	}
