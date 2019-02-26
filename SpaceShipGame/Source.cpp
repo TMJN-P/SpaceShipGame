@@ -7,6 +7,10 @@ char Buf[256];
 double VectorX, VectorY, Angle, BackX, BackY;
 int SpaceShipPicture, SpacePicture, MiniMap;
 
+void DrawShip();
+void Init();
+
+
 class Star {
 public:
 	double X, Y;
@@ -36,6 +40,27 @@ public:
 		double Distance = Dist();
 		VectorX -= Gravity * (X - 320)*pow(1.005, -max(Distance,300.0)) / Distance;
 		VectorY -= Gravity * (Y - 320)*pow(1.005, -max(Distance,300.0)) / Distance;
+	}
+	int Landing() {
+		DrawFormatString(X, Y, GetColor(255, 255, 255), "%f", atan2(Y-300, X-300));
+		if (Dist() <= Radius + 10) {
+			if ((fmod(abs(atan2(Y - 300, X - 300) - Angle), DX_PI * 2) <= 0.5 || abs(fmod(DX_PI * 2 - abs(atan2(Y - 300, X - 300) - Angle), DX_PI * 2)) <= 0.5)&&sqrt(VectorX*VectorX + VectorY * VectorY) <= 2) {
+				DrawFormatString(50, 50, GetColor(255, 150, 0), "Game Clear");
+				DrawShip();
+				ScreenFlip();
+				WaitKey();
+				Init();
+				return 1;
+			}
+			else {
+				DrawFormatString(50, 50, GetColor(255, 255, 255), "Game Over");
+				ScreenFlip();
+				WaitKey();
+				Init();
+				return -1;
+			}
+		}
+		else return 0;
 	}
 };
 
@@ -92,6 +117,8 @@ void DrawMap() {
 
 
 void Init() {
+	VectorX = 0;
+	VectorY = 0;
 	SpacePicture = LoadGraph("‰F’ˆ.png");
 	SpaceShipPicture = LoadGraph("’…—¤‘D.png");
 	Angle = DX_PI / 2;
@@ -111,10 +138,10 @@ void Init() {
 	StarData[13] = { -2200,2400,150,50,150,100 };
 	StarData[14] = { -3300,1200,250,180,30,150 };
 	StarData[15] = { 450,2500,100,200,100,100 };
-	StarData[16] = { 900,1500,25,100,200,100 };
+	StarData[16] = { 900,1500,75,100,200,100 };
 	StarData[17] = { 2000,900,150,100,100,200 };
 	StarData[18] = { 3000,3600,150,100,100,250 };
-	StarData[19] = { 2400,2700,200,255,255,255 };
+	StarData[19] = { 2400,2700,200,200,200,200 };
 }
 
 
@@ -145,17 +172,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			Accelerate();
 		}
 		BackMove();
-		DrawShip();
-		
 		for (int i = 0; i != 20; ++i) {
 			StarData[i].Move();
 			StarData[i].Draw();
 			StarData[i].ShipMove();
+			StarData[i].Landing();
 		}
 		if (Buf[KEY_INPUT_M]) {
 			DrawMap();
 		}
-		DrawFormatString(0, 0, GetColor(255, 255, 255), "%f %f", VectorX, VectorY);
+		DrawShip();
+		DrawFormatString(0, 0, GetColor(255, 255, 255), "%f %f %f", VectorX, VectorY, fmod(Angle, DX_PI * 2));
 		ScreenFlip();
 	}
 	WaitKey();
