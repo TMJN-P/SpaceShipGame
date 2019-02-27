@@ -171,6 +171,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		if (Buf[KEY_INPUT_UP]) {
 			Accelerate();
 		}
+		if (Buf[KEY_INPUT_DOWN]) {
+			VectorX *= 0.97;
+			VectorY *= 0.97;
+		}
 		BackMove();
 		for (int i = 0; i != 20; ++i) {
 			StarData[i].Move();
