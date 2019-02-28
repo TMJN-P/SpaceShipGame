@@ -4,7 +4,7 @@
 const int FieldX = 4000, FieldY = 4000;
 const double TurnMove = 0.1, Acceleration = 0.12, Gravity = 0.5;
 char Buf[256];
-double VectorX, VectorY, Angle, BackX, BackY, UseBrake, Dificulty;
+double VectorX, VectorY, Angle, BackX, BackY, UseBrake, Dificulty, LandingPermissionDificultly;
 int SpaceShipPicture, SpacePicture, SpaceShipBrokenPicture, TitlePicture, HowToPlayPicture, ScreenState, CursorState;
 bool HoldEnter,HoldArrow;
 
@@ -45,12 +45,12 @@ public:
 	}
 	int Landing() {
 		if (Dist() <= Radius + 14) {
-			if ((fmod(abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2) <= 0.5 || abs(fmod(DX_PI * 2 - abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2)) <= 0.5) && sqrt(VectorX*VectorX + VectorY * VectorY) * (3 + Dificulty) / 4 <= 2) {
+			if ((fmod(abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2) <= 0.5 || abs(fmod(DX_PI * 2 - abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2)) <= 0.5) && sqrt(VectorX*VectorX + VectorY * VectorY) * LandingPermissionDificultly<= 2) {
 				DrawBoxAA(50, 50, 590, 310, GetColor(0, 0, 0), TRUE);
 				DrawBoxAA(50, 50, 590, 310, GetColor(255, 255, 255), FALSE);
 				SetFontSize(100);
 				DrawString(70, 70, "Game Clear", GetColor(255, 125, 0));
-				int Score = (2 - min(fmod(abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2), abs(fmod(DX_PI * 2 - abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2))))*(10000 - Radius * 20)*(5 - sqrt(VectorX*VectorX + VectorY * VectorY)*(3 + Dificulty) / 4)*Dificulty;
+				int Score = (2 - min(fmod(abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2), abs(fmod(DX_PI * 2 - abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2))))*(10000 - Radius * 20)*(5 - sqrt(VectorX*VectorX + VectorY * VectorY)*LandingPermissionDificultly)*Dificulty;
 				if (!UseBrake) {
 					Score *= 2;
 					SetFontSize(30);
@@ -59,7 +59,7 @@ public:
 				SetFontSize(70);
 				DrawFormatString(70, 220, GetColor(255,255,255),"Score:%7d",Score);
 				SetFontSize(35);
-				DrawString(70, 400, "Press Enter to Return Title", GetColor(255, 255, 255));
+				DrawString(70, 500, "Press Enter to Return Title", GetColor(255, 255, 255));
 				DrawShip();
 				ScreenFlip();
 				while (!CheckHitKey(KEY_INPUT_RETURN)) {
@@ -70,7 +70,12 @@ public:
 				return 0;
 			}
 			else {
-				DrawFormatString(50, 50, GetColor(255, 255, 255), "Game Over");
+				SetFontSize(115);
+				DrawBox(30, 30, 610, 190, GetColor(0, 0, 0), TRUE);
+				DrawBox(30, 30, 610, 190, GetColor(255, 255, 255), FALSE);
+				DrawString(50, 50, "Game Over", GetColor(255, 0, 0));
+				SetFontSize(35);
+				DrawString(70, 500, "Press Enter to Return Title", GetColor(255, 255, 255));
 				DrawBrokenShip();
 				ScreenFlip();
 				WaitKey();
@@ -158,7 +163,6 @@ void Init() {
 	ScreenState = 0;
 	CursorState = 1;
 	UseBrake = FALSE;
-	Dificulty = 0.8;
 	Angle = DX_PI / 2;
 	StarData[0] = { -150,-900,100,180,255,40 };
 	StarData[1] = { -1000,-2100,150,0,190,120 };
@@ -192,11 +196,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetWindowText("着陸ゲーム");
 	if (DxLib_Init() == -1)
 		return -1;
-	SpacePicture = LoadGraph("宇宙.png");
-	SpaceShipPicture = LoadGraph("着陸船.png");
-	SpaceShipBrokenPicture = LoadGraph("爆発.png");
-	TitlePicture = LoadGraph("タイトル.png");
-	HowToPlayPicture = LoadGraph("あそびかた.png");
+	SpacePicture = LoadGraph("画像\\宇宙.png");
+	SpaceShipPicture = LoadGraph("画像\\着陸船.png");
+	SpaceShipBrokenPicture = LoadGraph("画像\\爆発.png");
+	TitlePicture = LoadGraph("画像\\タイトル.png");
+	HowToPlayPicture = LoadGraph("画像\\あそびかた.png");
 	Init();
 	while (ProcessMessage() == 0) {
 		ClearDrawScreen();
@@ -266,6 +270,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				break;
 			case 2:
 				DrawGraph(0, 0, SpacePicture, TRUE);
+				DrawBoxAA(100, 100, 540, 200, GetColor(0, 0, 0), TRUE, 1);
+				DrawBoxAA(100, 250, 540, 350, GetColor(0, 0, 0), TRUE, 1);
+				DrawBoxAA(100, 400, 540, 500, GetColor(0, 0, 0), TRUE, 1);
 				DrawBoxAA(100, 100, 540, 200, GetColor(0, 0, 255), FALSE, 1);
 				DrawBoxAA(100, 250, 540, 350, GetColor(255, 255, 0), FALSE, 1);
 				DrawBoxAA(100, 400, 540, 500, GetColor(255, 0, 0), FALSE, 1);
@@ -295,6 +302,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 							ScreenState = 3;
 							HoldEnter = TRUE;
 							Dificulty = 0.5;
+							LandingPermissionDificultly = 0.5;
 						}
 					}
 					else {
@@ -323,6 +331,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 							ScreenState = 3;
 							HoldEnter = TRUE;
 							Dificulty = 0.8;
+							LandingPermissionDificultly = 0.92;
 						}
 					}
 					else {
@@ -350,6 +359,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 							ScreenState = 3;
 							HoldEnter = TRUE;
 							Dificulty = 1;
+							LandingPermissionDificultly = 1;
 						}
 					}
 					else {
@@ -375,9 +385,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					StarData[i].Move();
 					StarData[i].Draw();
 					StarData[i].ShipMove();
+				}
+				for (int i = 0; i != 20; ++i) {
 					StarData[i].Landing();
 				}
-				
 				DrawShip();
 				if (Buf[KEY_INPUT_M]) {
 					DrawMap();
