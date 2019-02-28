@@ -5,8 +5,9 @@ const int FieldX = 4000, FieldY = 4000;
 const double TurnMove = 0.1, Acceleration = 0.12, Gravity = 0.5;
 char Buf[256];
 double VectorX, VectorY, Angle, BackX, BackY, UseBrake, Dificulty;
-int SpaceShipPicture, SpacePicture, SpaceShipBrokenPicture, TitlePicture, ScreenState, CursorState;
+int SpaceShipPicture, SpacePicture, SpaceShipBrokenPicture, TitlePicture, HowToPlayPicture, ScreenState, CursorState;
 bool HoldEnter,HoldArrow;
+
 void DrawShip();
 void DrawBrokenShip();
 void Init();
@@ -43,7 +44,6 @@ public:
 		VectorY -= Gravity * (Y - 320)*pow(1.005, -max(Distance,300.0)) / Distance;
 	}
 	int Landing() {
-		DrawFormatString(X, Y, GetColor(255, 255, 255), "%f", atan2(Y-320, X-320));
 		if (Dist() <= Radius + 14) {
 			if ((fmod(abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2) <= 0.5 || abs(fmod(DX_PI * 2 - abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2)) <= 0.5) && sqrt(VectorX*VectorX + VectorY * VectorY) * (3 + Dificulty) / 4 <= 2) {
 				DrawBoxAA(50, 50, 590, 310, GetColor(0, 0, 0), TRUE);
@@ -57,7 +57,7 @@ public:
 					DrawString(180, 180, "No Hover Bonus ×2", GetColor(255, 175, 0));
 				}
 				SetFontSize(70);
-				DrawFormatString(70, 220, GetColor(255,255,255),"Score:%d",Score);
+				DrawFormatString(70, 220, GetColor(255,255,255),"Score:%7d",Score);
 				SetFontSize(35);
 				DrawString(70, 400, "Press Enter to Return Title", GetColor(255, 255, 255));
 				DrawShip();
@@ -156,7 +156,7 @@ void Init() {
 	VectorX = 0;
 	VectorY = 0;
 	ScreenState = 0;
-	CursorState = 0;
+	CursorState = 1;
 	UseBrake = FALSE;
 	Dificulty = 0.8;
 	Angle = DX_PI / 2;
@@ -196,6 +196,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SpaceShipPicture = LoadGraph("着陸船.png");
 	SpaceShipBrokenPicture = LoadGraph("爆発.png");
 	TitlePicture = LoadGraph("タイトル.png");
+	HowToPlayPicture = LoadGraph("あそびかた.png");
 	Init();
 	while (ProcessMessage() == 0) {
 		ClearDrawScreen();
@@ -228,7 +229,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 						HoldEnter = FALSE;
 					}
 				}
-				else {
+				if (CursorState == 1) {
 					DrawBoxAA(170, 510, 460, 580, GetColor(0, 0, 255), FALSE, 8); 
 					if (Buf[KEY_INPUT_UP] || Buf[KEY_INPUT_DOWN]) {
 						if (!HoldArrow) {
@@ -242,6 +243,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					if (Buf[KEY_INPUT_RETURN]) {
 						if (!HoldEnter) {
 							ScreenState = 2;
+							CursorState = 0;
 							HoldEnter = TRUE;
 						}
 					}
@@ -251,9 +253,109 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				}
 				break;
 			case 1:
-
+				DrawGraph(0, 0, HowToPlayPicture, TRUE);
+				if (Buf[KEY_INPUT_RETURN]) {
+					if (!HoldEnter) {
+						ScreenState = 0;
+						HoldEnter = TRUE;
+					}
+				}
+				else {
+					HoldEnter = FALSE;
+				}
 				break;
 			case 2:
+				DrawGraph(0, 0, SpacePicture, TRUE);
+				DrawBoxAA(100, 100, 540, 200, GetColor(0, 0, 255), FALSE, 1);
+				DrawBoxAA(100, 250, 540, 350, GetColor(255, 255, 0), FALSE, 1);
+				DrawBoxAA(100, 400, 540, 500, GetColor(255, 0, 0), FALSE, 1);
+				SetFontSize(70);
+				DrawString(180, 120, "かんたん", GetColor(255, 255, 255));
+				DrawString(210, 270, "ふつう", GetColor(255, 255, 255));
+				DrawString(150, 420, "むずかしい", GetColor(255, 255, 255));
+				if (CursorState == 0) {
+					DrawBoxAA(100, 100, 540, 200, GetColor(0, 0, 255), FALSE, 8);
+					if (Buf[KEY_INPUT_UP]) {
+						if (!HoldArrow) {
+							CursorState = 2;
+							HoldArrow = TRUE;
+						}
+					}
+					else if (Buf[KEY_INPUT_DOWN]) {
+						if (!HoldArrow) {
+							CursorState = 1;
+							HoldArrow = TRUE;
+						}
+					}
+					else {
+						HoldArrow = FALSE;
+					}
+					if (Buf[KEY_INPUT_RETURN]) {
+						if (!HoldEnter) {
+							ScreenState = 3;
+							HoldEnter = TRUE;
+							Dificulty = 0.5;
+						}
+					}
+					else {
+						HoldEnter = FALSE;
+					}
+				}
+				if (CursorState == 1) {
+					DrawBoxAA(100, 250, 540, 350, GetColor(255, 255, 0), FALSE, 8);
+					if (Buf[KEY_INPUT_UP]) {
+						if (!HoldArrow) {
+							CursorState = 0;
+							HoldArrow = TRUE;
+						}
+					}
+					else if (Buf[KEY_INPUT_DOWN]) {
+						if (!HoldArrow) {
+							CursorState = 2;
+							HoldArrow = TRUE;
+						}
+					}
+					else {
+						HoldArrow = FALSE;
+					}
+					if (Buf[KEY_INPUT_RETURN]) {
+						if (!HoldEnter) {
+							ScreenState = 3;
+							HoldEnter = TRUE;
+							Dificulty = 0.8;
+						}
+					}
+					else {
+						HoldEnter = FALSE;
+					}
+				}
+				if (CursorState == 2) {
+					DrawBoxAA(100, 400, 540, 500, GetColor(255, 0, 0), FALSE, 8); if (Buf[KEY_INPUT_UP]) {
+						if (!HoldArrow) {
+							CursorState = 1;
+							HoldArrow = TRUE;
+						}
+					}
+					else if (Buf[KEY_INPUT_DOWN]) {
+						if (!HoldArrow) {
+							CursorState = 0;
+							HoldArrow = TRUE;
+						}
+					}
+					else {
+						HoldArrow = FALSE;
+					}	
+					if (Buf[KEY_INPUT_RETURN]) {
+						if (!HoldEnter) {
+							ScreenState = 3;
+							HoldEnter = TRUE;
+							Dificulty = 1;
+						}
+					}
+					else {
+						HoldEnter = FALSE;
+					}
+				}
 				break;
 			case 3:
 				if (Buf[KEY_INPUT_RIGHT]) {
@@ -280,7 +382,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				if (Buf[KEY_INPUT_M]) {
 					DrawMap();
 				}
-				DrawFormatString(0, 0, GetColor(255, 255, 255), "%f %f %f", VectorX, VectorY, fmod(Angle, DX_PI * 2));
 			break;
 		}
 		ScreenFlip();
