@@ -4,7 +4,7 @@
 const int FieldX = 4000, FieldY = 4000;
 const double TurnMove = 0.1, Acceleration = 0.12, Gravity = 0.5;
 char Buf[256];
-double VectorX, VectorY, Angle, BackX, BackY, UseBrake;
+double VectorX, VectorY, Angle, BackX, BackY, UseBrake, Dificulty;
 int SpaceShipPicture, SpacePicture, SpaceShipBrokenPicture;
 
 void DrawShip();
@@ -26,8 +26,8 @@ public:
 		DrawCircleAA((X-320) / 10+320, (Y-320) / 10+320, Radius / 10, 60, GetColor(ColorRed, ColorGreen, ColorBlue), TRUE);
 	}
 	void Move() {
-		X += VectorX;
-		Y += VectorY;
+		X += VectorX * Dificulty;
+		Y += VectorY * Dificulty;
 		if (X >= FieldX)
 			X -= FieldX * 2;
 		if (X <= -FieldX)
@@ -45,12 +45,12 @@ public:
 	int Landing() {
 		DrawFormatString(X, Y, GetColor(255, 255, 255), "%f", atan2(Y-320, X-320));
 		if (Dist() <= Radius + 14) {
-			if ((fmod(abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2) <= 0.5 || abs(fmod(DX_PI * 2 - abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2)) <= 0.5)&&sqrt(VectorX*VectorX + VectorY * VectorY) <= 2) {
+			if ((fmod(abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2) <= 0.5 || abs(fmod(DX_PI * 2 - abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2)) <= 0.5) && sqrt(VectorX*VectorX + VectorY * VectorY) * (3 + Dificulty) / 4 <= 2) {
 				DrawBoxAA(50, 50, 590, 310, GetColor(0, 0, 0), TRUE);
 				DrawBoxAA(50, 50, 590, 310, GetColor(255, 255, 255), FALSE);
 				SetFontSize(100);
 				DrawString(70, 70, "Game Clear", GetColor(255, 125, 0));
-				int Score = (2 - min(fmod(abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2), abs(fmod(DX_PI * 2 - abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2))))*(10000-Radius*20)*(5 - sqrt(VectorX*VectorX + VectorY * VectorY));
+				int Score = (2 - min(fmod(abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2), abs(fmod(DX_PI * 2 - abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2))))*(10000 - Radius * 20)*(5 - sqrt(VectorX*VectorX + VectorY * VectorY)*(3 + Dificulty) / 4)*Dificulty;
 				if (!UseBrake) {
 					Score *= 2;
 					SetFontSize(30);
@@ -58,6 +58,7 @@ public:
 				}
 				SetFontSize(70);
 				DrawFormatString(70, 220, GetColor(255,255,255),"Score:%d",Score);
+				SetFontSize(35);
 				DrawString(70, 400, "Press Enter to Return Title", GetColor(255, 255, 255));
 				DrawShip();
 				ScreenFlip();
@@ -112,8 +113,8 @@ void DrawBack() {
 }
 
 void BackMove() {
-	BackX += VectorX/2;
-	BackY += VectorY/2;
+	BackX += VectorX / 2 * Dificulty;
+	BackY += VectorY / 2 * Dificulty;
 	if (BackX >= 0)
 		BackX -= 720;
 	if (BackY >= 0)
@@ -137,8 +138,13 @@ void DrawMap() {
 
 void Brake() {
 	UseBrake = TRUE;
+	VectorX += Acceleration* 0.4 * cos(Angle);
+	VectorY += Acceleration* 0.4 * sin(Angle);
 	VectorX *= 0.97;
-	VectorY *= 0.97;
+	VectorY *= 0.97;	
+	for (int i = 0; i != 20; ++i) {
+		DrawLineAA(320 + cos(Angle - DX_PI / 8)*(17 + i), 320 + sin(Angle - DX_PI / 8)*(17 + i), 320 + cos(Angle + DX_PI / 8)*(17 + i), 320 + sin(Angle + DX_PI / 8)*(17 + i), GetColor(0, 0, 255 - i * 2));
+	}
 	for (int i = 0; i != 20; ++i) {
 		DrawCircleAA(320, 320, i + 10, 60, GetColor(0, 0, 255 - i * 10), FALSE);
 	}
@@ -154,6 +160,7 @@ void Init() {
 	SpaceShipPicture = LoadGraph("’…—¤‘D.png");
 	SpaceShipBrokenPicture = LoadGraph("”š”­.png");
 	UseBrake = FALSE;
+	Dificulty = 0.8;
 	Angle = DX_PI / 2;
 	StarData[0] = { -150,-900,100,180,255,40 };
 	StarData[1] = { -1000,-2100,150,0,190,120 };
