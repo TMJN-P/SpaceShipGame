@@ -5,8 +5,8 @@ const int FieldX = 4000, FieldY = 4000;
 const double TurnMove = 0.1, Acceleration = 0.12, Gravity = 0.5;
 char Buf[256];
 double VectorX, VectorY, Angle, BackX, BackY, UseBrake, Dificulty;
-int SpaceShipPicture, SpacePicture, SpaceShipBrokenPicture;
-
+int SpaceShipPicture, SpacePicture, SpaceShipBrokenPicture, TitlePicture, ScreenState, CursorState;
+bool HoldEnter,HoldArrow;
 void DrawShip();
 void DrawBrokenShip();
 void Init();
@@ -54,7 +54,7 @@ public:
 				if (!UseBrake) {
 					Score *= 2;
 					SetFontSize(30);
-					DrawString(180, 180, "No Brake Bonus Å~2", GetColor(255, 175, 0));
+					DrawString(180, 180, "No Hover Bonus Å~2", GetColor(255, 175, 0));
 				}
 				SetFontSize(70);
 				DrawFormatString(70, 220, GetColor(255,255,255),"Score:%d",Score);
@@ -62,9 +62,10 @@ public:
 				DrawString(70, 400, "Press Enter to Return Title", GetColor(255, 255, 255));
 				DrawShip();
 				ScreenFlip();
-				while (!Buf[KEY_INPUT_RETURN]) {
+				while (!CheckHitKey(KEY_INPUT_RETURN)) {
 					GetHitKeyStateAll(Buf);
 				}
+				HoldEnter = TRUE;
 				Init();
 				return 0;
 			}
@@ -80,6 +81,8 @@ public:
 		else return 0;
 	}
 };
+
+Star StarData[20];
 
 void TurnRight() {
 	Angle += TurnMove;
@@ -125,9 +128,6 @@ void BackMove() {
 		BackY += 720;
 }
 
-Star StarData[20];
-
-
 void DrawMap() {
 	DrawBoxAA(0, 0, 720, 720, GetColor(0, 0, 0), TRUE);
 	for (int i = 0; i != 20; ++i) {
@@ -151,14 +151,12 @@ void Brake() {
 }
 
 
-
 void Init() {
 	SetFontSize(20);
 	VectorX = 0;
 	VectorY = 0;
-	SpacePicture = LoadGraph("âFíà.png");
-	SpaceShipPicture = LoadGraph("íÖó§ëD.png");
-	SpaceShipBrokenPicture = LoadGraph("îöî≠.png");
+	ScreenState = 0;
+	CursorState = 0;
 	UseBrake = FALSE;
 	Dificulty = 0.8;
 	Angle = DX_PI / 2;
@@ -194,37 +192,97 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetWindowText("íÖó§ÉQÅ[ÉÄ");
 	if (DxLib_Init() == -1)
 		return -1;
+	SpacePicture = LoadGraph("âFíà.png");
+	SpaceShipPicture = LoadGraph("íÖó§ëD.png");
+	SpaceShipBrokenPicture = LoadGraph("îöî≠.png");
+	TitlePicture = LoadGraph("É^ÉCÉgÉã.png");
 	Init();
 	while (ProcessMessage() == 0) {
 		ClearDrawScreen();
 		SetDrawScreen(DX_SCREEN_BACK);
 		DrawBack();
 		GetHitKeyStateAll(Buf);
-		if (Buf[KEY_INPUT_RIGHT]) {
-			TurnRight();
-		}
-		if (Buf[KEY_INPUT_LEFT]) {
-			TurnLeft();
-		}
-		if (Buf[KEY_INPUT_DOWN]) {
-			Brake();
-		}
-		if (Buf[KEY_INPUT_UP]) {
-			Accelerate();
-		}
-		BackMove();
-		for (int i = 0; i != 20; ++i) {
-			StarData[i].Move();
-			StarData[i].Draw();
-			StarData[i].ShipMove();
-			StarData[i].Landing();
-		}
+		switch(ScreenState) {
+			case 0:
+				DrawGraph(0, 0, TitlePicture, TRUE);
+				DrawBoxAA(170, 420, 460, 490, GetColor(255, 0, 0), FALSE, 1);
+				DrawBoxAA(170, 510, 460, 580, GetColor(0, 0, 255), FALSE, 1);
+				if (CursorState == 0) {
+					DrawBoxAA(170, 420, 460, 490, GetColor(255, 0, 0), FALSE, 8);
+					if (Buf[KEY_INPUT_UP] || Buf[KEY_INPUT_DOWN]) {
+						if (!HoldArrow) {
+							CursorState = 1;
+							HoldArrow = TRUE;
+						}
+					}
+					else {
+						HoldArrow = FALSE;
+					}
+					if (Buf[KEY_INPUT_RETURN]) {
+						if (!HoldEnter) {
+							ScreenState = 1;
+							HoldEnter = TRUE;
+						}
+					}
+					else {
+						HoldEnter = FALSE;
+					}
+				}
+				else {
+					DrawBoxAA(170, 510, 460, 580, GetColor(0, 0, 255), FALSE, 8); 
+					if (Buf[KEY_INPUT_UP] || Buf[KEY_INPUT_DOWN]) {
+						if (!HoldArrow) {
+							CursorState = 0;
+							HoldArrow = TRUE;
+						}
+					}
+					else {
+						HoldArrow = FALSE;
+					}
+					if (Buf[KEY_INPUT_RETURN]) {
+						if (!HoldEnter) {
+							ScreenState = 2;
+							HoldEnter = TRUE;
+						}
+					}
+					else {
+						HoldEnter = FALSE;
+					}
+				}
+				break;
+			case 1:
 
-		DrawShip();
-		if (Buf[KEY_INPUT_M]) {
-			DrawMap();
+				break;
+			case 2:
+				break;
+			case 3:
+				if (Buf[KEY_INPUT_RIGHT]) {
+					TurnRight();
+				}
+				if (Buf[KEY_INPUT_LEFT]) {
+					TurnLeft();
+				}
+				if (Buf[KEY_INPUT_DOWN]) {
+					Brake();
+				}
+				if (Buf[KEY_INPUT_UP]) {
+					Accelerate();
+				}
+				BackMove();
+				for (int i = 0; i != 20; ++i) {
+					StarData[i].Move();
+					StarData[i].Draw();
+					StarData[i].ShipMove();
+					StarData[i].Landing();
+				}
+				
+				DrawShip();
+				if (Buf[KEY_INPUT_M]) {
+					DrawMap();
+				}
+				DrawFormatString(0, 0, GetColor(255, 255, 255), "%f %f %f", VectorX, VectorY, fmod(Angle, DX_PI * 2));
+			break;
 		}
-		DrawFormatString(0, 0, GetColor(255, 255, 255), "%f %f %f", VectorX, VectorY, fmod(Angle, DX_PI * 2));
 		ScreenFlip();
 	}
 	WaitKey();
