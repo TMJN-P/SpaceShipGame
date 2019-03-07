@@ -50,7 +50,7 @@ public:
 				DrawBoxAA(50, 50, 590, 310, GetColor(255, 255, 255), FALSE);
 				SetFontSize(100);
 				DrawString(70, 70, "Game Clear", GetColor(255, 125, 0));
-				int Score = (2 - min(fmod(abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2), abs(fmod(DX_PI * 2 - abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2))))*(10000 - Radius * 20)*(5 - sqrt(VectorX*VectorX + VectorY * VectorY)*LandingPermissionDificultly)*Dificulty;
+				int Score = (2 - min(fmod(abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2), abs(fmod(DX_PI * 2 - abs(atan2(Y - 320, X - 320) - Angle), DX_PI * 2))))*(10000 - Radius * 20)*(5 - sqrt(VectorX*VectorX + VectorY * VectorY))*Dificulty;
 				if (!UseBrake) {
 					Score *= 2;
 					SetFontSize(30);
@@ -188,8 +188,8 @@ void Init() {
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-	ChangeWindowMode(TRUE);
 	SetOutApplicationLogValidFlag(FALSE);
+	ChangeWindowMode(TRUE);
 	SetWindowSizeChangeEnableFlag(FALSE, FALSE);
 	SetGraphMode(640, 640, 32);
 	SetWindowSize(640, 640);
